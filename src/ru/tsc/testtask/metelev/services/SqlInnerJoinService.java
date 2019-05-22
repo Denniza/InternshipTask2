@@ -6,62 +6,39 @@ import java.util.*;
 
 public class SqlInnerJoinService {
 
-    public ArrayList<ResultLine> innerJoin(ArrayList<Line> firstList, ArrayList<Line> secondList) {
-        HashMap<Integer, ArrayList<Line>> map = new HashMap<>();
+    public ArrayList<ResultLine> innerJoin(ArrayList<Line> firstList, ArrayList<Line> secondList){
         ArrayList<ResultLine> result = new ArrayList<>();
-        for(Line line:secondList){
-            map.putIfAbsent(line.getId(),new ArrayList<>());
-            map.get(line.getId()).add(line);
-        }
-        for(Line line:firstList){
-            if(map.get(line.getId())==null) continue;
-            for(Line secondLine:map.get(line.getId())){
-                result.add(new ResultLine(line,secondLine));
-            }
-        }
-        return result;
-    }
-
-    public ArrayList<ResultLine> secondInnerJoin(ArrayList<Line> firstList, ArrayList<Line> secondList){
-        ArrayList<ResultLine> result = new ArrayList<>();
-        for(Line line:firstList){
-            for(Line secondLine:secondList){
-                if(line.getId()==secondLine.getId()){
-                    result.add(new ResultLine(line,secondLine));
-                }
-            }
-        }
+        firstList.forEach(s->secondList.forEach(a->{
+            if(s.getId()==a.getId())
+                result.add(new ResultLine(s,a));
+        }));
         return result;
     }
 
     public LinkedList<ResultLine> innerJoin (LinkedList<Line> firstList, LinkedList<Line> secondList) {
         LinkedList<ResultLine> result = new LinkedList<>();
-        ListIterator<Line> iterator = secondList.listIterator();
+        ListIterator<Line> iteratorSecond = secondList.listIterator();
         ListIterator<Line> iteratorFirst = firstList.listIterator();
-        int iteratorStepCount=1;
-        mark:
-        while (iteratorFirst.hasNext()){
-            Line firstListLine = iteratorFirst.next();
-            Line secondListLine;
-            while (true) {
-                if(!iterator.hasNext()) { //если следующее значение null, то отводим итератор назад
-                    iteratorBack(iterator,iteratorStepCount-1);
+        int iteratorStepCount = 1;
+        Line secondListLine;
+        Line firstListLine;
+        while (iteratorFirst.hasNext()) {
+            firstListLine = iteratorFirst.next();
+            while (iteratorSecond.hasNext()) {
+                secondListLine = iteratorSecond.next();
+                if (firstListLine.getId() < secondListLine.getId()) {
+                    iteratorBack(iteratorSecond,iteratorStepCount);
                     iteratorStepCount=1;
-                    continue mark;
-                }
-                secondListLine = iterator.next();
-                if ((firstListLine.getId() < secondListLine.getId())) {
-                    if(iteratorStepCount!=1){
-                        iteratorBack(iterator,iteratorStepCount);
-                        iteratorStepCount=1;
+                    break;
+                } else if (firstListLine.getId() == secondListLine.getId()) {
+                    result.add(new ResultLine(firstListLine, secondListLine));
+                    iteratorStepCount++;
+                    if(!iteratorSecond.hasNext()) {
+                        iteratorBack(iteratorSecond, iteratorStepCount);
+                        iteratorStepCount = 1;
+                        break;
                     }
-                    continue mark;
                 }
-                if(firstListLine.getId() > secondListLine.getId()) {
-                    continue;
-                }
-                result.add(new ResultLine(firstListLine,secondListLine));
-                iteratorStepCount++;
             }
         }
         return result;
@@ -76,16 +53,13 @@ public class SqlInnerJoinService {
     public HashMap<Integer,ArrayList<ResultLine>> innerJoin (HashMap<Integer,ArrayList<Line>> firstMap,
                                                              HashMap<Integer,ArrayList<Line>> secondMap){
         HashMap<Integer,ArrayList<ResultLine>> result = new HashMap<>();
-        for(Map.Entry entry:firstMap.entrySet()){
-            int id = (int)entry.getKey();
+        for(Map.Entry<Integer,ArrayList<Line>> entry:firstMap.entrySet()){
+            int id = entry.getKey();
             if(!secondMap.containsKey(id)) continue;
-            ArrayList<Line> firstList =(ArrayList<Line>) entry.getValue();
+            ArrayList<Line> firstList = entry.getValue();
             result.putIfAbsent(id,new ArrayList<>());
-            for(Line line:firstList){
-                for(Line secondLine:secondMap.get(id)){
-                    result.get(id).add(new ResultLine(line,secondLine));
-                }
-            }
+            firstList.forEach(s->secondMap.get(id)
+                    .forEach(a->result.get(id).add(new ResultLine(s,a))));
         }
         return result;
     }

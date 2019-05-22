@@ -28,7 +28,7 @@ public class Main {
         }
         firstList = downloadDataService.downloadData(args[0]);
         secondList = downloadDataService.downloadData(args[1]);
-        List<ResultLine> resultArrayList = innerJoin.secondInnerJoin(firstList,secondList);
+        List<ResultLine> resultArrayList = innerJoin.innerJoin(firstList,secondList);
         LinkedList<Line> firstLinkedList = dataTransferService.transferToLinkedList(firstList);
         LinkedList<Line> secondLinkedList = dataTransferService.transferToLinkedList(secondList);
         List<ResultLine> resultLinkedList = innerJoin.innerJoin(firstLinkedList,secondLinkedList);
